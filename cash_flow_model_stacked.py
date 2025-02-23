@@ -16,9 +16,8 @@ retirement_age = st.sidebar.slider("Retirement Age", 55, 70, 65)
 
 # Investment Inputs
 investment = st.sidebar.number_input("Current Investments (£)", value=60000, step=1000)
-investment_drawdown = st.sidebar.number_input("Annual Investment Drawdown (£)", value=0, step=500)
-investment_drawdown_early = st.sidebar.number_input("Investment Drawdown Before State Pension Age (£)", value=10000, step=500)
-investment_drawdown_late = st.sidebar.number_input("Investment Drawdown After State Pension Age (£)", value=5000, step=500)
+investment_drawdown_phase1 = st.sidebar.slider("Investment Drawdown Before State Pension Age (£ per year)", 0, 50000, 10000, step=500)
+investment_drawdown_phase2 = st.sidebar.slider("Investment Drawdown After State Pension Age (£ per year)", 0, 50000, 5000, step=500)
 
 # NHS Pension Inputs
 nhs_years = st.sidebar.number_input("Years in NHS Pension", value=15, step=1)
@@ -54,9 +53,9 @@ for age in years:
     
     # Investment Drawdown Strategy
     if age < state_pension_age:
-        drawdown = investment_drawdown_early
+        drawdown = investment_drawdown_phase1
     else:
-        drawdown = investment_drawdown_late
+        drawdown = investment_drawdown_phase2
     investment_drawdowns.append(drawdown)
     
     # Pension Income (NHS & State Pension)
