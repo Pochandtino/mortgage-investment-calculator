@@ -65,3 +65,4 @@ fig.update_traces(mode='lines+markers')
 fig.update_layout(yaxis_title="£ Value", xaxis_title="Years", hovermode="x unified")
 
 st.plotly_chart(fig, use_container_width=True)
+
