@@ -9,9 +9,10 @@ st.set_page_config(page_title="Mortgage vs Investment Calculator", layout="wide"
 # Sidebar with user inputs
 st.sidebar.header("Adjust Your Parameters")
 
-investment = st.sidebar.number_input("Investment Amount (£)", value=60000, step=1000)
+investment = st.sidebar.number_input("Initial Investment Amount (£)", value=60000, step=1000)
 investment_rate = st.sidebar.slider("Investment Return Rate (%)", 0.0, 15.0, 10.0) / 100
-additional_investment = st.sidebar.number_input("Annual Additional Investment (£)", value=0, step=1000)
+additional_investment_mortgage = st.sidebar.number_input("Annual Additional Investment During Mortgage (£)", value=0, step=1000)
+additional_investment_post_mortgage = st.sidebar.number_input("Annual Additional Investment Post Mortgage (£)", value=5000, step=1000)
 mortgage = st.sidebar.number_input("Mortgage Amount (£)", value=170000, step=5000)
 mortgage_rate = st.sidebar.slider("Mortgage Interest Rate (%)", 0.0, 10.0, 3.98) / 100
 term = st.sidebar.slider("Mortgage Term (Years)", 5, 30, 15)
@@ -35,10 +36,13 @@ for year in range(term):
         remaining_balance -= principal
     mortgage_balances.append(remaining_balance)
 
-# Investment growth tracking
+# Investment growth tracking with different pre- and post-mortgage contributions
 investment_balances = [investment]
 for year in range(investment_duration):
-    investment_balances.append((investment_balances[-1] + additional_investment + income_allocation * 12) * (1 + investment_rate))
+    if year < term:
+        investment_balances.append((investment_balances[-1] + additional_investment_mortgage + income_allocation * 12) * (1 + investment_rate))
+    else:
+        investment_balances.append((investment_balances[-1] + additional_investment_post_mortgage + income_allocation * 12) * (1 + investment_rate))
 
 # Total Mortgage Cost
 num_remortgages = term // remort_freq
