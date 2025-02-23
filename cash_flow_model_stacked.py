@@ -18,7 +18,8 @@ part_time_salary_pct = st.sidebar.slider("Part-Time Salary (% of Full Salary)", 
 
 # Investment Inputs
 investment = st.sidebar.number_input("Current Investments (£)", value=60000, step=1000)
-investment_drawdown_pre_retirement = st.sidebar.slider("Investment Drawdown Pre-Retirement (£ per year)", 0, 50000, 5000, step=500)
+investment_drawdown_full_time = st.sidebar.slider("Investment Drawdown (Full-Time Work) (£ per year)", 0, 50000, 5000, step=500)
+investment_drawdown_part_time = st.sidebar.slider("Investment Drawdown (Part-Time Work) (£ per year)", 0, 50000, 7500, step=500)
 investment_drawdown_retirement_to_sp = st.sidebar.slider("Investment Drawdown Retirement to State Pension Age (£ per year)", 0, 50000, 10000, step=500)
 investment_drawdown_post_sp = st.sidebar.slider("Investment Drawdown After State Pension Age (£ per year)", 0, 50000, 5000, step=500)
 
@@ -45,26 +46,24 @@ pension_income = []
 state_pensions = []
 total_income = []
 
-total_investments = investment
 for age in years:
     # Salary Growth and Part-Time adjustment
     if age < part_time_age:
         current_salary = salary
+        drawdown = investment_drawdown_full_time
     elif part_time_age <= age < retirement_age:
         current_salary = salary * (part_time_salary_pct / 100)
+        drawdown = investment_drawdown_part_time
     else:
         current_salary = 0
-    
+        if retirement_age <= age < state_pension_age:
+            drawdown = investment_drawdown_retirement_to_sp
+        else:
+            drawdown = investment_drawdown_post_sp
+
     salaries.append(current_salary)
     salary *= (1 + salary_growth)
 
-    # Investment Drawdown Strategy
-    if age < retirement_age:
-        drawdown = investment_drawdown_pre_retirement
-    elif retirement_age <= age < state_pension_age:
-        drawdown = investment_drawdown_retirement_to_sp
-    else:
-        drawdown = investment_drawdown_post_sp
     investment_drawdowns.append(drawdown)
 
     # Pension Income (NHS & State Pension)
