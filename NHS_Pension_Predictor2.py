@@ -1,45 +1,44 @@
 import streamlit as st
+import pandas as pd
 
-# Streamlit UI Setup
-st.set_page_config(page_title="Simplified NHS Pension Predictor", layout="wide")
+st.set_page_config(page_title="Advanced NHS Pension Predictor", layout="wide")
 
-st.title("Simplified NHS Pension Predictor")
+st.title("Advanced NHS Pension Predictor")
 
-# User inputs
-st.sidebar.header("Your NHS Details")
+st.sidebar.header("Your NHS Pension Details")
 
-current_age = st.sidebar.number_input("Current Age", value=40, step=1)
-retirement_age = st.sidebar.slider("Retirement Age", 55, 70, 65)
+# Toggle for advanced features
+advanced = st.sidebar.checkbox("Advanced Details")
 
-current_salary = st.sidebar.number_input("Current Annual Salary (£)", value=50000, step=1000)
-salary_growth_rate = st.sidebar.number_input("Annual Salary Growth (%)", value=2.0, step=0.1, format="%.2f") / 100
+# Example Earnings Data
+example_data = pd.DataFrame({
+    "Year Ending": ["31/03/2010", "31/03/2011", "31/03/2012", "31/03/2013", "31/03/2014", "31/03/2015", "31/03/2016", "31/03/2017", "31/03/2018", "31/03/2019", "31/03/2020", "31/03/2021", "31/03/2022", "31/03/2023", "31/03/2024"],
+    "Pensionable Earnings": [23203.30, 29298.30, 30293.96, 29062.02, 28555.02, 30081.52, 33283.89, 36423.02, 38323.91, 40779.51, 43008.22, 47088.40, 58685.57, 54266.96, 56964.96],
+    "Section": ["2008"]*13 + ["2015"]*2,
+    "Revaluation": [None]*13 + [11.6, 8.2],
+    "Year": list(range(1,16)),
+    "Age": list(range(30,45))
+})
 
-st.sidebar.subheader("Scheme Membership")
-years_1995 = st.sidebar.number_input("Years in 1995 Scheme", value=5, step=1)
-years_2008 = st.sidebar.number_input("Years in 2008 Scheme", value=5, step=1)
-years_2015 = st.sidebar.number_input("Years in 2015 Scheme", value=5, step=1)
+if advanced:
+    st.subheader("Detailed Pensionable Earnings History")
+    st.dataframe(example_data)
 
-# Constants based on NHS schemes
-accrual_rates = {"2015 CARE": 1/54, "1995 Final Salary": 1/80, "2008 Final Salary": 1/60}
+# Pension Calculation
+final_salary_2008 = example_data[example_data.Section == "2008"]["Pensionable Earnings"].iloc[-3:].mean()
+years_2008 = len(example_data[example_data.Section == "2008"])
+pension_2008 = final_salary_2008 * (years_2008 / 60)
 
-# Calculate predicted pension
-final_salary = current_salary * ((1 + salary_growth_rate) ** (retirement_age - current_age))
-avg_salary_care = (current_salary + final_salary) / 2
+care_earnings = example_data[example_data.Section == "2015"]
+care_pension = sum(care_earnings["Pensionable Earnings"] / 54)
 
-annual_pension_1995 = final_salary * years_1995 * accrual_rates["1995 Final Salary"]
-annual_pension_2008 = final_salary * years_2008 * accrual_rates["2008 Final Salary"]
-annual_pension_2015 = avg_salary_care * years_2015 * accrual_rates["2015 CARE"]
-
-annual_pension_total = annual_pension_1995 + annual_pension_2008 + annual_pension_2015
+# Revaluation factor
+care_pension_revalued = care_pension
+for rev in care_earnings["Revaluation"].dropna():
+    care_pension_revalued *= (1 + rev / 100)
 
 # Display results
-st.subheader("Estimated Pension at Retirement")
-st.write(f"Based on a retirement age of {retirement_age}, your estimated annual NHS pension is:")
-st.write(f"## £{annual_pension_total:,.2f} per year")
-
-st.markdown("### Breakdown by Scheme:")
-st.write(f"- **1995 Scheme:** £{annual_pension_1995:,.2f}")
-st.write(f"- **2008 Scheme:** £{annual_pension_2008:,.2f}")
-st.write(f"- **2015 CARE Scheme:** £{annual_pension_2015:,.2f}")
-
-st.markdown("This is a simplified estimate and does not account for lump sums, exact CARE revaluations, or specific scheme rules.")
+st.subheader("Estimated NHS Pension")
+st.write(f"### 2008 Section Pension: £{pension_2008:,.2f} per year")
+st.write(f"### 2015 CARE Pension (Revalued): £{care_pension_revalued:,.2f} per year")
+st.write(f"### Total Estimated Pension: £{pension_2008 + care_pension_revalued:,.2f} per year")
